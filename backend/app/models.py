@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from sqlalchemy import Numeric, String
+from sqlalchemy import CheckConstraint, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -8,6 +8,7 @@ from app.database import Base
 
 class Vehicle(Base):
     __tablename__ = "vehicles"
+    __table_args__ = (CheckConstraint("quantity >= 0", name="vehicle_quantity_non_negative"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     make: Mapped[str] = mapped_column(String(50))

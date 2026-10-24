@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.auth import get_current_user, require_admin
 from app.database import get_db
 from app.models import Vehicle
-from app.schemas import VehicleCreate, VehicleRead, VehicleSearch
+from app.schemas import StockChange, VehicleCreate, VehicleRead, VehicleSearch
 
 router = APIRouter(
     prefix="/api/vehicles",
@@ -48,8 +48,9 @@ def search_vehicles(
     return db.scalars(query).all()
 
 
-def get_vehicle_or_404(db: Session, vehicle_id: int) -> Vehicle:
-    vehicle = db.get(Vehicle, vehicle_id)
+def get_vehicle_or_404(db: Session, vehicle_id: int, for_update: bool = False) -> Vehicle:
+    # for_update locks the row until commit so concurrent stock changes can't interleave.
+    vehicle = db.get(Vehicle, vehicle_id, with_for_update=for_update or None)
     if vehicle is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vehicle not found")
     return vehicle
@@ -74,3 +75,27 @@ def delete_vehicle(vehicle_id: int, db: Session = Depends(get_db)):
     vehicle = get_vehicle_or_404(db, vehicle_id)
     db.delete(vehicle)
     db.commit()
+
+
+@router.post("/{vehicle_id}/purchase", response_model=VehicleRead)
+def purchase_vehicle(vehicle_id: int, payload: StockChange, db: Session = Depends(get_db)):
+    vehicle = get_vehicle_or_404(db, vehicle_id, for_update=True)
+    if vehicle.quantity < payload.quantity:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Insufficient stock")
+    vehicle.quantity -= payload.quantity
+    db.commit()
+    db.refresh(vehicle)
+    return vehicle
+
+
+@router.post(
+    "/{vehicle_id}/restock",
+    response_model=VehicleRead,
+    dependencies=[Depends(require_admin)],
+)
+def restock_vehicle(vehicle_id: int, payload: StockChange, db: Session = Depends(get_db)):
+    vehicle = get_vehicle_or_404(db, vehicle_id, for_update=True)
+    vehicle.quantity += payload.quantity
+    db.commit()
+    db.refresh(vehicle)
+    return vehicle

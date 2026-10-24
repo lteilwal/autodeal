@@ -26,6 +26,10 @@ class VehicleRead(BaseModel):
     quantity: int
 
 
+class StockChange(BaseModel):
+    quantity: int = Field(gt=0)
+
+
 class VehicleSearch(BaseModel):
     make: str | None = None
     model: str | None = None
