@@ -4,12 +4,16 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.auth import require_admin
+from app.auth import get_current_user, require_admin
 from app.database import get_db
 from app.models import Vehicle
 from app.schemas import VehicleCreate, VehicleRead, VehicleSearch
 
-router = APIRouter(prefix="/api/vehicles", tags=["vehicles"])
+router = APIRouter(
+    prefix="/api/vehicles",
+    tags=["vehicles"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @router.post("", response_model=VehicleRead, status_code=status.HTTP_201_CREATED)

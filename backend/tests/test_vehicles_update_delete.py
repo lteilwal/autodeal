@@ -1,9 +1,5 @@
-from types import SimpleNamespace
-
 import pytest
 
-from app.auth import get_current_user
-from app.main import app
 from app.models import Vehicle
 
 UPDATED_VEHICLE = {
@@ -21,17 +17,6 @@ def vehicle(db_session):
     db_session.add(vehicle)
     db_session.commit()
     return vehicle
-
-
-# Auth isn't implemented yet: these stand in for whatever user a valid JWT resolves to.
-@pytest.fixture
-def as_admin(client):
-    app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(is_admin=True)
-
-
-@pytest.fixture
-def as_regular_user(client):
-    app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(is_admin=False)
 
 
 def reload(db_session, vehicle_id):
@@ -103,41 +88,41 @@ def test_update_with_missing_field_returns_422(client, vehicle, missing_field):
 # DELETE /api/vehicles/{id}
 
 
-def test_admin_can_delete_vehicle(client, as_admin, db_session, vehicle):
+def test_admin_can_delete_vehicle(admin_client, db_session, vehicle):
     vehicle_id = vehicle.id
 
-    response = client.delete(f"/api/vehicles/{vehicle_id}")
+    response = admin_client.delete(f"/api/vehicles/{vehicle_id}")
 
     assert response.status_code == 204
     assert reload(db_session, vehicle_id) is None
 
 
-def test_deleted_vehicle_no_longer_listed_or_deletable(client, as_admin, vehicle):
+def test_deleted_vehicle_no_longer_listed_or_deletable(admin_client, vehicle):
     vehicle_id = vehicle.id
-    client.delete(f"/api/vehicles/{vehicle_id}")
+    admin_client.delete(f"/api/vehicles/{vehicle_id}")
 
-    assert client.get("/api/vehicles").json() == []
-    response = client.delete(f"/api/vehicles/{vehicle_id}")
+    assert admin_client.get("/api/vehicles").json() == []
+    response = admin_client.delete(f"/api/vehicles/{vehicle_id}")
     assert response.status_code == 404
     assert response.json() == {"detail": "Vehicle not found"}
 
 
-def test_delete_missing_vehicle_returns_404(client, as_admin):
-    response = client.delete("/api/vehicles/999999")
+def test_delete_missing_vehicle_returns_404(admin_client):
+    response = admin_client.delete("/api/vehicles/999999")
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Vehicle not found"}
 
 
-def test_non_admin_cannot_delete_vehicle(client, as_regular_user, db_session, vehicle):
+def test_non_admin_cannot_delete_vehicle(client, db_session, vehicle):
     response = client.delete(f"/api/vehicles/{vehicle.id}")
 
     assert response.status_code == 403
     assert reload(db_session, vehicle.id) is not None
 
 
-def test_unauthenticated_user_cannot_delete_vehicle(client, db_session, vehicle):
-    response = client.delete(f"/api/vehicles/{vehicle.id}")
+def test_unauthenticated_user_cannot_delete_vehicle(anon_client, db_session, vehicle):
+    response = anon_client.delete(f"/api/vehicles/{vehicle.id}")
 
     assert response.status_code == 401
     assert reload(db_session, vehicle.id) is not None

@@ -4,3 +4,6 @@ pytest
 httpx2
 sqlalchemy
 psycopg[binary]
+pyjwt
+bcrypt
+email-validator
