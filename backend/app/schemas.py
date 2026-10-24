@@ -1,7 +1,15 @@
 from decimal import Decimal
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, PlainSerializer, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    PlainSerializer,
+    field_validator,
+    model_validator,
+)
 
 # Pydantic serializes Decimal as a JSON string by default; the API returns a number.
 Price = Annotated[Decimal, PlainSerializer(float, return_type=float)]
@@ -50,8 +58,14 @@ class VehicleSearch(BaseModel):
 
 class UserCreate(BaseModel):
     email: EmailStr
-    # bcrypt only uses the first 72 bytes of a password.
-    password: str = Field(min_length=8, max_length=72)
+    password: str = Field(min_length=8)
+
+    @field_validator("password")
+    @classmethod
+    def password_fits_bcrypt(cls, password: str) -> str:
+        if len(password.encode()) > 72:
+            raise ValueError("password must be at most 72 bytes")
+        return password
 
 
 class UserRead(BaseModel):

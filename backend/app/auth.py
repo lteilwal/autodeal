@@ -22,7 +22,11 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(password: str, hashed_password: str) -> bool:
-    return bcrypt.checkpw(password.encode(), hashed_password.encode())
+    encoded = password.encode()
+    # bcrypt rejects passwords over 72 bytes, and registration never accepts one.
+    if len(encoded) > 72:
+        return False
+    return bcrypt.checkpw(encoded, hashed_password.encode())
 
 
 def create_access_token(user_id: int) -> str:

@@ -16,6 +16,13 @@ class Base(DeclarativeBase):
     pass
 
 
+def init_db(bind=engine):
+    # Creates missing tables only; existing tables and their rows are left untouched.
+    from app import models  # noqa: F401  (registers the tables on Base)
+
+    Base.metadata.create_all(bind)
+
+
 def get_db():
     db = SessionLocal()
     try:

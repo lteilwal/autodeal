@@ -191,3 +191,24 @@ def test_regular_user_cannot_access_admin_route(client, db_session):
 
 def test_health_does_not_require_token(anon_client):
     assert anon_client.get("/health").status_code == 200
+
+
+# bcrypt only accepts up to 72 bytes; multi-byte characters reach that limit sooner.
+
+
+def test_register_password_over_72_bytes_returns_422(anon_client, db_session):
+    payload = {"email": "new@example.com", "password": "é" * 40}  # 40 chars, 80 bytes
+
+    response = anon_client.post("/api/auth/register", json=payload)
+
+    assert response.status_code == 422
+    assert db_session.scalars(select(User)).all() == []
+
+
+def test_login_with_overlong_password_returns_401(anon_client, user):
+    response = anon_client.post(
+        "/api/auth/login", json={"email": user.email, "password": "x" * 100}
+    )
+
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Invalid email or password"}
