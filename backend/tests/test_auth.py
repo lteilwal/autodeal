@@ -212,3 +212,32 @@ def test_login_with_overlong_password_returns_401(anon_client, user):
 
     assert response.status_code == 401
     assert response.json() == {"detail": "Invalid email or password"}
+
+
+# GET /api/auth/me
+
+
+def test_me_returns_regular_user(client, user):
+    response = client.get("/api/auth/me")
+
+    assert response.status_code == 200
+    assert response.json() == {"id": user.id, "email": "user@example.com", "is_admin": False}
+
+
+def test_me_returns_admin_flag_for_admin(admin_client, admin):
+    response = admin_client.get("/api/auth/me")
+
+    assert response.status_code == 200
+    assert response.json() == {"id": admin.id, "email": "admin@example.com", "is_admin": True}
+
+
+def test_me_without_token_returns_401(anon_client):
+    response = anon_client.get("/api/auth/me")
+
+    assert response.status_code == 401
+
+
+def test_me_with_invalid_token_returns_401(anon_client):
+    response = anon_client.get("/api/auth/me", headers={"Authorization": "Bearer not-a-jwt"})
+
+    assert response.status_code == 401

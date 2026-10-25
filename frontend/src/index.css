@@ -1,0 +1,212 @@
+@import "tailwindcss";
+
+/*
+  Retro chrome look, built from three ingredients only:
+  a base colour, a light highlight on the top edge and a darker shadow below.
+  Pressed buttons swap the outer shadow for an inner one so they sink in.
+*/
+
+@theme {
+  --font-display: "Righteous", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Share Tech Mono", ui-monospace, monospace;
+
+  --color-ink: #1f1b18;
+  --color-cream: #f6efdf;
+  --color-paper: #fbf6ea;
+  --color-cherry: #cf2734;
+  --color-cherry-dark: #8c1521;
+  --color-teal: #2e8a91;
+  --color-teal-dark: #1b5a5f;
+  --color-steel: #7c838a;
+  --color-amber: #f4cf62;
+}
+
+@layer base {
+  body {
+    @apply min-h-screen font-sans text-ink;
+    background:
+      radial-gradient(ellipse at top, #3a7d82 0%, transparent 60%),
+      linear-gradient(180deg, #24575b 0%, #163a3d 100%);
+    background-attachment: fixed;
+  }
+}
+
+@layer components {
+  /* Polished chrome strip: bright top, dark band in the middle, bright again below. */
+  .chrome {
+    background: linear-gradient(180deg, #ffffff 0%, #dfe3e7 40%, #a9b0b7 52%, #e4e7ea 100%);
+    border: 1px solid var(--color-steel);
+    box-shadow:
+      inset 0 1px 0 #fff,
+      inset 0 -1px 0 rgb(0 0 0 / 0.25),
+      0 4px 10px rgb(0 0 0 / 0.35);
+  }
+
+  /* Car grille: thin vertical bars. */
+  .grille {
+    height: 10px;
+    border-radius: 999px;
+    background: repeating-linear-gradient(90deg, #2b2f33 0 6px, #c9ced3 6px 8px);
+    box-shadow: inset 0 2px 3px rgb(0 0 0 / 0.6);
+  }
+
+  /* Hood emblem logo. */
+  .emblem {
+    @apply font-display text-2xl tracking-wide text-cherry sm:text-3xl;
+    padding: 0.2rem 1.1rem;
+    border-radius: 999px;
+    text-shadow: 0 1px 0 #fff, 0 -1px 0 rgb(0 0 0 / 0.25);
+  }
+
+  /* Cream dashboard panel with a chrome rim and a thick bottom edge. */
+  .panel {
+    @apply rounded-2xl p-5;
+    background: var(--color-cream);
+    border: 4px solid #cfd4d8;
+    box-shadow:
+      0 0 0 1px var(--color-steel),
+      inset 0 1px 0 rgb(255 255 255 / 0.9),
+      inset 0 -3px 0 rgb(0 0 0 / 0.08),
+      0 6px 0 #a59a80,
+      0 12px 20px rgb(0 0 0 / 0.35);
+  }
+  .panel-title {
+    @apply mb-4 font-display text-xl tracking-wide text-teal-dark;
+    text-shadow: 0 1px 0 #fff;
+  }
+
+  /* Embossed pill buttons. */
+  .btn {
+    @apply inline-flex items-center justify-center rounded-full px-4 py-2 font-display text-sm tracking-wider uppercase select-none;
+    transition:
+      transform 80ms ease,
+      box-shadow 80ms ease,
+      filter 120ms ease;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.85),
+      inset 0 -2px 0 rgb(0 0 0 / 0.2),
+      0 3px 0 var(--btn-edge),
+      0 5px 8px rgb(0 0 0 / 0.3);
+  }
+  .btn:hover:not(:disabled) {
+    filter: brightness(1.06);
+  }
+  .btn:active:not(:disabled) {
+    transform: translateY(3px);
+    box-shadow:
+      inset 0 2px 5px rgb(0 0 0 / 0.35),
+      0 0 0 var(--btn-edge);
+  }
+  .btn:focus-visible {
+    outline: 3px solid var(--color-amber);
+    outline-offset: 2px;
+  }
+  .btn:disabled {
+    @apply cursor-not-allowed;
+    filter: grayscale(0.7);
+    opacity: 0.6;
+  }
+  .btn-chrome {
+    --btn-edge: #686f76;
+    color: var(--color-ink);
+    background: linear-gradient(180deg, #ffffff 0%, #dde1e5 45%, #b4bac0 55%, #e8ebee 100%);
+  }
+  .btn-red {
+    --btn-edge: #6e0f18;
+    color: #fff;
+    text-shadow: 0 -1px 0 rgb(0 0 0 / 0.35);
+    background: linear-gradient(180deg, #f0606a 0%, #cf2734 50%, #b11d29 100%);
+  }
+  .btn-teal {
+    --btn-edge: #123f43;
+    color: #fff;
+    text-shadow: 0 -1px 0 rgb(0 0 0 / 0.35);
+    background: linear-gradient(180deg, #5bb8bf 0%, #2e8a91 50%, #24747a 100%);
+  }
+
+  /* Recessed input fields. */
+  .field-label {
+    @apply text-xs font-bold tracking-widest text-teal-dark uppercase;
+  }
+  .field {
+    @apply w-full rounded-lg px-3 py-2 text-ink;
+    background: var(--color-paper);
+    border: 1px solid #b3a88e;
+    box-shadow:
+      inset 0 2px 4px rgb(0 0 0 / 0.18),
+      0 1px 0 rgb(255 255 255 / 0.9);
+  }
+  .field:focus {
+    outline: 2px solid var(--color-teal);
+    outline-offset: 1px;
+  }
+  .field-invalid {
+    border-color: var(--color-cherry);
+  }
+
+  /* Odometer-style stock counter. */
+  .gauge {
+    @apply rounded-md px-2 py-1 font-mono text-lg tracking-[0.2em];
+    color: var(--color-amber);
+    background: linear-gradient(180deg, #111 0%, #2a2a2a 100%);
+    box-shadow:
+      inset 0 2px 4px rgb(0 0 0 / 0.8),
+      0 1px 0 rgb(255 255 255 / 0.7);
+  }
+  .gauge-empty {
+    color: #ff6b6b;
+  }
+
+  /* Price shown on a little licence plate. */
+  .plate {
+    @apply rounded-md px-3 py-1 font-mono text-lg font-bold;
+    background: #fffdf6;
+    border: 2px solid var(--color-ink);
+    box-shadow:
+      inset 0 0 0 2px #fffdf6,
+      inset 0 0 0 3px var(--color-ink),
+      0 2px 0 rgb(0 0 0 / 0.25);
+  }
+
+  .chip {
+    @apply rounded-full px-3 py-0.5 text-xs font-bold tracking-widest text-white uppercase;
+    background: linear-gradient(180deg, #5bb8bf, #24747a);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5);
+  }
+
+  .stamp {
+    @apply inline-block rounded px-2 py-0.5 font-display text-sm tracking-widest text-cherry uppercase;
+    border: 2px solid var(--color-cherry);
+    transform: rotate(-6deg);
+  }
+
+  .alert {
+    @apply rounded-lg px-3 py-2 text-sm font-semibold;
+    box-shadow: inset 0 2px 3px rgb(0 0 0 / 0.12);
+  }
+  .alert-error {
+    @apply text-cherry-dark;
+    background: #fde3e1;
+    border: 1px solid #e9a3a0;
+  }
+  .alert-success {
+    @apply text-teal-dark;
+    background: #dff3ef;
+    border: 1px solid #98cfc6;
+  }
+
+  /* Spinning hubcap used as the loading indicator. */
+  .hubcap {
+    @apply inline-block size-7 rounded-full;
+    background:
+      radial-gradient(circle, #e9ecef 0 22%, transparent 23%),
+      repeating-conic-gradient(#aab1b8 0 15deg, #f4f6f7 15deg 30deg);
+    border: 3px solid #5e656c;
+    animation: spin 0.9s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hubcap {
+      animation: none;
+    }
+  }
+}
