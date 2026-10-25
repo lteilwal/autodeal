@@ -1,5 +1,7 @@
 // Small building blocks shared by every screen. The look lives in index.css.
 
+import { useEffect, useId } from "react";
+
 export function Button({
   variant = "chrome",
   busy = false,
@@ -52,5 +54,44 @@ export function Spinner({ label = "Loading…" }) {
   );
 }
 
-const priceFormat = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+// Modal yes/no prompt. Escape or clicking the backdrop cancels.
+export function ConfirmDialog({ title, confirmLabel, onConfirm, onCancel, children }) {
+  const titleId = useId();
+
+  useEffect(() => {
+    const handleKey = (event) => event.key === "Escape" && onCancel();
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [onCancel]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4"
+      onClick={onCancel}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className="panel w-full max-w-sm"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <h2 id={titleId} className="panel-title">
+          {title}
+        </h2>
+        {children}
+        <div className="mt-5 flex justify-end gap-3">
+          <Button onClick={onCancel} autoFocus>
+            Cancel
+          </Button>
+          <Button variant="red" onClick={onConfirm}>
+            {confirmLabel}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const priceFormat =new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 export const formatPrice = (price) => priceFormat.format(price);

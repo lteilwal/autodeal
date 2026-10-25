@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import VehicleForm from "./VehicleForm";
-import { Alert, Button, formatPrice } from "./ui";
+import { Alert, Button, ConfirmDialog, formatPrice } from "./ui";
 
 // One vehicle: details, a purchase control for everyone and admin tools.
 // `actions` holds the API calls; each returns a promise so the card can show progress.
@@ -9,19 +9,25 @@ export default function VehicleCard({ vehicle, isAdmin, actions }) {
   const [buyQty, setBuyQty] = useState("1");
   const [restockQty, setRestockQty] = useState("1");
   const [editing, setEditing] = useState(false);
+  const [confirmQty, setConfirmQty] = useState(null);
   const [busy, setBusy] = useState("");
   const [message, setMessage] = useState({ kind: "error", text: "" });
 
+  const name = `${vehicle.make} ${vehicle.model}`;
   const soldOut = vehicle.quantity === 0;
 
-  async function run(name, action, successText) {
-    setBusy(name);
+  async function run(actionName, action, successText) {
+    setBusy(actionName);
     setMessage({ kind: "error", text: "" });
     try {
       await action();
       if (successText) setMessage({ kind: "success", text: successText });
     } catch (error) {
-      setMessage({ kind: "error", text: error.message });
+      const text =
+        actionName === "buy" && error.status === 409
+          ? "Not enough stock left. The inventory has been refreshed."
+          : error.message;
+      setMessage({ kind: "error", text });
     } finally {
       setBusy("");
     }
@@ -38,7 +44,14 @@ export default function VehicleCard({ vehicle, isAdmin, actions }) {
     if (qty > vehicle.quantity) {
       return setMessage({ kind: "error", text: `Only ${vehicle.quantity} in stock` });
     }
-    run("buy", () => actions.purchase(vehicle.id, qty), `Purchased ${qty}`);
+    setMessage({ kind: "error", text: "" });
+    setConfirmQty(qty);
+  }
+
+  function confirmBuy() {
+    const qty = confirmQty;
+    setConfirmQty(null);
+    run("buy", () => actions.purchase(vehicle.id, qty), `Purchased ${qty} × ${name}`);
   }
 
   function handleRestock() {
@@ -48,7 +61,7 @@ export default function VehicleCard({ vehicle, isAdmin, actions }) {
   }
 
   function handleDelete() {
-    if (!window.confirm(`Delete ${vehicle.make} ${vehicle.model}?`)) return;
+    if (!window.confirm(`Delete ${name}?`)) return;
     run("delete", () => actions.remove(vehicle.id));
   }
 
@@ -156,6 +169,27 @@ export default function VehicleCard({ vehicle, isAdmin, actions }) {
       )}
 
       <Alert kind={message.kind}>{message.text}</Alert>
+
+      {confirmQty !== null && (
+        <ConfirmDialog
+          title="Confirm purchase"
+          confirmLabel="Confirm purchase"
+          onConfirm={confirmBuy}
+          onCancel={() => setConfirmQty(null)}
+        >
+          <p className="font-display text-lg">
+            {confirmQty} × {name}
+          </p>
+          <dl className="mt-3 grid grid-cols-2 gap-y-1 text-sm">
+            <dt>Price each</dt>
+            <dd className="text-right font-mono">{formatPrice(vehicle.price)}</dd>
+            <dt className="font-bold">Total</dt>
+            <dd className="text-right font-mono font-bold">
+              {formatPrice(vehicle.price * confirmQty)}
+            </dd>
+          </dl>
+        </ConfirmDialog>
+      )}
     </article>
   );
 }
