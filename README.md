@@ -223,8 +223,10 @@ Latest results: **120 backend tests passed, 5 frontend tests passed, production 
 - Claude was not allowed to run Git. I reviewed the changes, ran the tests and made the commits myself. Claude gave me the `git add` and commit commands, with a `Co-authored-by: Claude` trailer.
 - Claude also wrote the React frontend, the seed script and the first draft of this documentation, including this section's factual parts.
 
-> **TODO (author):** add your own honest reflection here, in your own words. For example:
-> - what you checked yourself (reading the diffs, running the tests and the app, trying the UI by hand)
-> - anything you changed, rejected or questioned in the AI's output
-> - what you learned (TDD, FastAPI, JWT, React, …)
-> - where the AI helped most, and where you had to correct it or be careful.
+I relied heavily on Claude Code throughout this project, but my level of involvement varied across parts of the application.
+
+For the backend, I was more familiar with the technologies and concepts involved, so I was able to make many of the design decisions, choose the implementation approach, and guide the development process. I used Claude to help implement features, write tests, debug issues, and review possible approaches, while making decisions about the overall architecture and functionality myself.
+
+Testing was one of my weaker areas going into this project, so I relied on Claude considerably for writing test cases, structuring the test suite, and understanding the TDD workflow. Similarly, I had very little prior experience with frontend development, so Claude handled most of the React and Tailwind implementation. I contributed by providing design preferences, making decisions about the user experience, and guiding the frontend towards the intended result.
+
+Overall, AI allowed me to build a more complete application while working with technologies and practices I was less familiar with. At the same time, this experience showed me where I need to improve, particularly in writing and understanding tests independently and gaining hands-on frontend experience. I see the project not just as a finished application, but also as an opportunity to identify gaps in my knowledge and areas I want to develop further.
