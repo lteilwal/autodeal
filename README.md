@@ -177,8 +177,6 @@ Latest results: **120 backend tests passed, 5 frontend tests passed, production 
 
 ## Screenshots
 
-> **TODO (author):** take these screenshots from the running app and save them with exactly these file names. Until then, the images below won't display.
-
 | Screen | How to get there | Save as |
 |---|---|---|
 | Login | Open http://localhost:5173 while logged out | `docs/screenshots/01-login.png` |
